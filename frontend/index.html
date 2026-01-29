@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SyncBridge Live Monitor</title>
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#f5f7fb;
+      padding:30px;
+    }
+    h1{color:#222;}
+    .status{color:green;font-weight:bold;}
+    button{
+      background:#2563eb;
+      color:white;
+      border:none;
+      padding:10px 16px;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+      background:white;
+    }
+    th,td{
+      padding:10px;
+      border-bottom:1px solid #ddd;
+      text-align:left;
+    }
+    th{
+      background:#1f2937;
+      color:white;
+    }
+    tr:hover{background:#f1f5f9;}
+    #log{
+      margin-top:20px;
+      background:black;
+      color:#00ff00;
+      padding:10px;
+      height:150px;
+      overflow:auto;
+      font-family:monospace;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>SyncBridge Live Monitor</h1>
+<p>Status: <span class="status">Running</span></p>
+
+<button onclick="forceSync()">Force Sync</button>
+
+<table>
+<thead>
+<tr>
+  <th>UUID</th>
+  <th>Name</th>
+  <th>Updated At</th>
+  <th>Version</th>
+  <th>Source</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+
+<div id="log"></div>
+
+<script>
+async function loadData(){
+  const res = await fetch("http://localhost:4000/data");
+  const data = await res.json();
+  const tbody=document.getElementById("rows");
+  tbody.innerHTML="";
+  data.forEach(r=>{
+    tbody.innerHTML+=`
+      <tr>
+        <td>${r.uuid}</td>
+        <td>${r.name}</td>
+        <td>${r.updated_at}</td>
+        <td>${r.version}</td>
+        <td>${r.source}</td>
+      </tr>`;
+  });
+}
+
+async function forceSync(){
+  await fetch("http://localhost:4000/sync");
+  log("Manual sync triggered");
+  loadData();
+}
+
+function log(msg){
+  document.getElementById("log").innerHTML+=
+    "["+new Date().toLocaleTimeString()+"] "+msg+"<br>";
+}
+
+setInterval(loadData,5000);
+loadData();
+</script>
+
+</body>
+</html>
